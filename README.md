@@ -54,19 +54,19 @@ make dev
 
 「チャネル別のデータをプロットして」と質問した例。GraphQL でデータを取得し、チャネル別の総支出額と週次推移を Plotly チャートで表示。
 
-![チャネル別支出の棒グラフ](scratch/channel-spend-bar.png)
+![チャネル別支出の棒グラフ](docs/images/channel-spend-bar.png)
 
 ### 収益貢献度の分析（ROI ランキング + 円グラフ）
 
 「各チャネルが収益にどの程度影響しているか分析して」と質問した例。MCP の `run_mmm_regression` で回帰分析を実行し、`decompose_contributions` で貢献度を分解。ROI 効率性ランキングと円グラフを生成。
 
-![収益貢献度の分析](scratch/revenue-contribution-pie.png)
+![収益貢献度の分析](docs/images/revenue-contribution-pie.png)
 
 ### 収益貢献度の積み上げグラフ
 
 「収益への各チャネルの貢献度を分解して、積み上げグラフで表示して」と質問した例。MCP の `decompose_contributions` + `generate_plot_data` で週次の貢献度を積み上げ棒グラフとして可視化。
 
-![収益貢献度の積み上げグラフ](scratch/contribution-stacked-bar.png)
+![収益貢献度の積み上げグラフ](docs/images/contribution-stacked-bar.png)
 
 ## 技術スタック
 
