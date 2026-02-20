@@ -33,9 +33,19 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# database
+data/
+
 # vercel
 .vercel
+
+# mcp-server build & deps
+mcp-server/build/
+mcp-server/node_modules/
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# temp files
+scratch/

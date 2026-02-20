@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MMM-MCP Chatbot Engineering
 
-## Getting Started
+Marketing Mix Model (MMM) 分析プラットフォーム。AI チャットボットが GraphQL・MCP・E2B を駆使してマーケティングデータを分析し、インタラクティブなチャートを生成します。
 
-First, run the development server:
+## アーキテクチャ
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+┌─────────────────────────────────────────────────┐
+│                 Next.js App                      │
+│  ┌──────────────────┐  ┌─────────────────────┐  │
+│  │   ChatPanel       │  │   GraphViewer       │  │
+│  │   (conversation)  │  │   (Plotly.js)       │  │
+│  └────────┬─────────┘  └──────────▲──────────┘  │
+│           │    plotly JSON blocks  │              │
+│           ▼                        │              │
+│  ┌────────────────────────────────────────────┐  │
+│  │         POST /api/chat                     │  │
+│  │         (Claude tool-use loop)             │  │
+│  └───┬──────────┬──────────────┬──────────────┘  │
+│      │          │              │                  │
+│      ▼          ▼              ▼                  │
+│  GraphQL     E2B Cloud     MCP Client            │
+│  /api/graphql  Sandbox     (stdio spawn)         │
+│      │                        │                  │
+│      ▼                        ▼                  │
+│  SQLite DB              MCP Server               │
+│  (data/mmm.db)          (3 analysis tools)       │
+└─────────────────────────────────────────────────┘
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## クイックスタート
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# 全依存関係のインストール + DB シード + MCP ビルド
+make setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# .env.local に API キーを設定
+ANTHROPIC_API_KEY=sk-ant-...
+E2B_API_KEY=e2b_...
 
-## Learn More
+# Next.js + MkDocs を同時起動
+make dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+| サービス | URL |
+|---------|-----|
+| Web アプリ | http://localhost:3456 |
+| GraphiQL | http://localhost:3456/api/graphql |
+| 設計ドキュメント | http://localhost:8765 |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 応答例
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### チャネル別支出の棒グラフ
 
-## Deploy on Vercel
+「チャネル別のデータをプロットして」と質問した例。GraphQL でデータを取得し、チャネル別の総支出額と週次推移を Plotly チャートで表示。
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+![チャネル別支出の棒グラフ](scratch/channel-spend-bar.png)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 収益貢献度の分析（ROI ランキング + 円グラフ）
+
+「各チャネルが収益にどの程度影響しているか分析して」と質問した例。MCP の `run_mmm_regression` で回帰分析を実行し、`decompose_contributions` で貢献度を分解。ROI 効率性ランキングと円グラフを生成。
+
+![収益貢献度の分析](scratch/revenue-contribution-pie.png)
+
+### 収益貢献度の積み上げグラフ
+
+「収益への各チャネルの貢献度を分解して、積み上げグラフで表示して」と質問した例。MCP の `decompose_contributions` + `generate_plot_data` で週次の貢献度を積み上げ棒グラフとして可視化。
+
+![収益貢献度の積み上げグラフ](scratch/contribution-stacked-bar.png)
+
+## 技術スタック
+
+| レイヤー | 技術 |
+|---------|------|
+| フロントエンド | Next.js 16, React, Tailwind CSS, Plotly.js |
+| LLM | Anthropic Claude (tool use) |
+| データ | SQLite (better-sqlite3) |
+| API | GraphQL (graphql-yoga) |
+| 分析 | MCP Server (Model Context Protocol) |
+| コード実行 | E2B Cloud Sandboxes |
+
+## Makefile コマンド
+
+| コマンド | 説明 |
+|---------|------|
+| `make dev` | Honcho で全サービスを同時起動 |
+| `make web` | Next.js のみ起動 |
+| `make docs` | MkDocs のみ起動 |
+| `make seed` | DB を再シード |
+| `make build-mcp` | MCP サーバーをリビルド |
+| `make setup` | フルセットアップ（初回） |
+| `make clean` | 生成物を削除 |
+
+## ドキュメント
+
+設計仕様は MkDocs で管理されています。`make docs` で http://localhost:8765 から閲覧可能。
+
+- [クイックスタート](docs/quickstart.md)
+- [アーキテクチャ](docs/architecture.md)
+- [データベース](docs/database.md)
+- [GraphQL API](docs/graphql.md)
+- [MCP サーバー](docs/mcp-server.md)
+- [チャットボット](docs/chatbot.md)
+- [E2B 連携](docs/e2b.md)
+- [フロントエンド](docs/frontend.md)
+- [API ルート](docs/api.md)
+- [サンプルシナリオ](docs/scenarios.md)

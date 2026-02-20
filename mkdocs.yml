@@ -1,0 +1,41 @@
+site_name: MMM-MCP Chatbot Engineering
+site_description: Design specification for the Marketing Mix Model analysis platform
+theme:
+  name: material
+  palette:
+    scheme: default
+    primary: indigo
+    accent: teal
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - クイックスタート: quickstart.md
+  - Architecture: architecture.md
+  - Database: database.md
+  - GraphQL API: graphql.md
+  - MCP Server: mcp-server.md
+  - Chatbot: chatbot.md
+  - E2B Integration: e2b.md
+  - Frontend: frontend.md
+  - API Routes: api.md
+  - サンプルシナリオ: scenarios.md
+  - Setup Guide: setup.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - pymdownx.details
+  - tables
