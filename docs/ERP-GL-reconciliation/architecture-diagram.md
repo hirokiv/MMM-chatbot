@@ -75,6 +75,8 @@ flowchart TB
             direction TB
             Workbench["<b>Finance Workbench</b><br/>🌐 <b>Static Web Apps</b><br/>Review & Approve"]
 
+            RerunOptions["<b>Re-run Options</b><br/>📦 <b>Container Apps</b><br/>Full / Partial re-run"]
+
             ApprovalGateway["<b>Approval Gateway</b><br/>📦 <b>Container Apps</b><br/>SoD enforcement"]
 
             ControlledOutput["<b>Controlled Output</b><br/>📦 <b>Container Apps</b><br/>ERP posting"]
@@ -127,7 +129,9 @@ flowchart TB
     %% Finance Control Flow
     RecDB ==>|"<b>All Cases</b>"| Workbench
     Workbench ==>|"<b>Request</b>"| ApprovalGateway
-    Workbench -.->|"<b>Re-run batch</b>"| BatchProcessor
+    Workbench -.->|"<b>Re-run request</b>"| RerunOptions
+    RerunOptions -.->|"<b>Full re-run<br/>(from ingestion)</b>"| Orchestrator
+    RerunOptions -.->|"<b>Reconciliation only</b>"| BatchProcessor
     ApprovalGateway ==>|"<b>Approved</b>"| ControlledOutput
     ControlledOutput -.->|"<b>If Approved</b>"| ERP
     ControlledOutput -.->|"<b>Archive Resolved</b>"| History
@@ -142,6 +146,7 @@ flowchart TB
     Engine -.->|"<b>Metrics</b>"| Monitor
     AIInvestigator -.->|"<b>Metrics</b>"| Monitor
     Workbench -.->|"<b>Actions</b>"| AuditStore
+    RerunOptions -.->|"<b>Re-run decisions</b>"| AuditStore
     ApprovalGateway -.->|"<b>Events</b>"| AuditStore
     ControlledOutput -.->|"<b>Logs</b>"| AuditStore
 
@@ -162,7 +167,7 @@ flowchart TB
     class Orchestrator,APIConnector,RPA,RawStorage,NormalizedStorage,Normalizer,AITroubleshooter automationStyle
     class RecDB,Engine,BatchProcessor,ExceptionMgr reconcileStyle
     class AIInvestigator,RootCauseAnalysis,RAGPipeline,ConfidenceEngine aiStyle
-    class Workbench,ApprovalGateway,ControlledOutput,AuditStore financeStyle
+    class Workbench,RerunOptions,ApprovalGateway,ControlledOutput,AuditStore financeStyle
     class KeyVault,Monitor,RBAC governanceStyle
 ```
 

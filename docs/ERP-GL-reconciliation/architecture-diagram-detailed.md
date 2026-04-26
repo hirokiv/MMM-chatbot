@@ -74,6 +74,8 @@ flowchart TB
             direction TB
             Workbench["Finance Workbench UI<br/><b>Azure Static Web Apps</b><br/>• Exception review interface<br/>• Matched case verification<br/>• Approval workflow"]
 
+            RerunOptions["Re-run Options Service<br/><b>Azure Container Apps</b><br/>• Full re-run (from ingestion)<br/>• Reconciliation only<br/>• Impact assessment<br/>• Audit logging"]
+
             ApprovalGateway["Approval Gateway Service<br/><b>Azure Container Apps</b><br/>• Enforces Segregation of Duties<br/>• Validation before ERP write<br/>• Approval audit logging"]
 
             ControlledOutput["Controlled Output Service<br/><b>Azure Container Apps</b><br/>• ERP posting (approved only)<br/>• Retry on write failure<br/>• Rollback on error"]
@@ -126,7 +128,9 @@ flowchart TB
     %% Finance Control Flow (Thick Lines - Critical)
     RecDB ==>|"All cases"| Workbench
     Workbench ==>|"Approval request"| ApprovalGateway
-    Workbench -.->|"Manual re-run batch"| BatchProcessor
+    Workbench -.->|"Re-run request"| RerunOptions
+    RerunOptions -.->|"Full re-run (from ingestion)"| Orchestrator
+    RerunOptions -.->|"Reconciliation only"| BatchProcessor
     ApprovalGateway ==>|"Validated"| ControlledOutput
     ControlledOutput -.->|"Only if approved"| ERP
     ControlledOutput -.->|"Archive resolved cases"| History
@@ -141,6 +145,7 @@ flowchart TB
     Engine -.->|"Processing metrics"| Monitor
     AIInvestigator -.->|"AI service metrics"| Monitor
     Workbench -.->|"User actions"| AuditStore
+    RerunOptions -.->|"Re-run decisions"| AuditStore
     ApprovalGateway -.->|"Approval events"| AuditStore
     ControlledOutput -.->|"ERP write logs"| AuditStore
 
@@ -161,7 +166,7 @@ flowchart TB
     class Orchestrator,APIConnector,RPA,RawStorage,NormalizedStorage,Normalizer,AITroubleshooter automationStyle
     class RecDB,Engine,BatchProcessor,ExceptionMgr reconcileStyle
     class AIInvestigator,RootCauseAnalysis,RAGPipeline,ConfidenceEngine aiStyle
-    class Workbench,ApprovalGateway,ControlledOutput,AuditStore financeStyle
+    class Workbench,RerunOptions,ApprovalGateway,ControlledOutput,AuditStore financeStyle
     class KeyVault,Monitor,RBAC governanceStyle
 ```
 
