@@ -46,7 +46,7 @@ flowchart TB
 
             Normalizer["<b>Normalizer</b><br/>📦 <b>Container Apps</b><br/>Validation"]
 
-            AITroubleshooter["<b>AI Troubleshooter</b><br/>📦 <b>Container Apps</b> + LangGraph<br/>RPA failure diagnosis"]
+            AITroubleshooter["<b>AI Troubleshooter</b><br/>📦 <b>Container Apps</b><br/>LLM Engine (Azure OpenAI)<br/>Diagnostic analysis"]
         end
 
         subgraph ReconciliationDomain["⚙️ Reconciliation Domain"]
@@ -64,7 +64,7 @@ flowchart TB
             direction TB
             AIInvestigator["<b>AI Investigator</b><br/>📦 <b>Container Apps</b><br/>LangGraph orchestration"]
 
-            LLM["<b>LLM Engine</b><br/>🤖 <b>Azure OpenAI</b><br/>GPT-4"]
+            RootCauseAnalysis["<b>Root Cause Analysis</b><br/>📦 <b>Container Apps</b><br/>LLM Engine (Azure OpenAI)<br/>Pattern detection"]
 
             RAGPipeline["<b>RAG Pipeline</b><br/>🔍 <b>Azure AI Search</b><br/>Similar cases"]
 
@@ -120,8 +120,8 @@ flowchart TB
     RecDB -.->|"<b>Unmatched Only</b>"| AIInvestigator
     History -.->|"<b>Reference</b>"| RAGPipeline
     RAGPipeline -.->|"<b>Similar</b>"| AIInvestigator
-    AIInvestigator -.->|"<b>Query</b>"| LLM
-    LLM -.->|"<b>Analysis</b>"| ConfidenceEngine
+    AIInvestigator -.->|"<b>Analyze</b>"| RootCauseAnalysis
+    RootCauseAnalysis -.->|"<b>Root cause</b>"| ConfidenceEngine
     ConfidenceEngine -.->|"<b>Suggest</b>"| RecDB
 
     %% Finance Control Flow
@@ -161,7 +161,7 @@ flowchart TB
     class POS,Bank,ERP,History sourceStyle
     class Orchestrator,APIConnector,RPA,RawStorage,NormalizedStorage,Normalizer,AITroubleshooter automationStyle
     class RecDB,Engine,BatchProcessor,ExceptionMgr reconcileStyle
-    class AIInvestigator,LLM,RAGPipeline,ConfidenceEngine aiStyle
+    class AIInvestigator,RootCauseAnalysis,RAGPipeline,ConfidenceEngine aiStyle
     class Workbench,ApprovalGateway,ControlledOutput,AuditStore financeStyle
     class KeyVault,Monitor,RBAC governanceStyle
 ```
@@ -203,6 +203,7 @@ sequenceDiagram
     participant Batch as <b>Batch Processor</b>
     participant Engine as <b>Deterministic Engine<br/>(Power Automate)</b>
     participant AI as <b>AI Investigator</b>
+    participant RootCause as <b>Root Cause Analysis</b>
     participant DB as <b>Recon DB</b>
     participant Finance as <b>Finance Team</b>
     participant Gateway as <b>Approval Gateway</b>
@@ -269,8 +270,10 @@ sequenceDiagram
         DB->>AI: Unmatched
         AI->>History: Search similar
         History-->>AI: Top 5 cases
-        AI->>AI: Root cause
-        AI->>AI: Confidence
+        AI->>RootCause: Analyze with context
+        RootCause->>RootCause: LLM reasoning
+        RootCause-->>AI: Root cause hypothesis
+        AI->>AI: Confidence scoring
         AI->>DB: Suggestion (NOT decision)
         DB->>Audit: Log AI
     else AI Down

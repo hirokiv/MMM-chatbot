@@ -45,7 +45,7 @@ flowchart TB
 
             Normalizer["Data Normalization Service<br/><b>Azure Container Apps</b><br/>• Schema validation<br/>• Format standardization<br/>• Quarantine invalid data"]
 
-            AITroubleshooter["AI Troubleshooter<br/><b>Azure Container Apps (LangGraph)</b><br/>• RPA failure diagnosis<br/>• Error log analysis<br/>• UI change detection<br/>• Auto-retry suggestions"]
+            AITroubleshooter["AI Troubleshooter<br/><b>Azure Container Apps</b><br/>• LLM Engine (Azure OpenAI)<br/>• RPA failure diagnosis<br/>• Error log analysis<br/>• UI change detection<br/>• Auto-retry suggestions"]
         end
 
         subgraph ReconciliationDomain["⚙️ Reconciliation Domain"]
@@ -63,7 +63,7 @@ flowchart TB
             direction TB
             AIInvestigator["AI-Assisted Investigation Service<br/><b>Azure Container Apps (LangGraph)</b><br/>• Workflow orchestration<br/>• Case routing<br/>• Context preparation"]
 
-            LLM["LLM Inference Engine<br/><b>Azure OpenAI (GPT-4)</b><br/>• Root cause analysis<br/>• Natural language reasoning<br/>• Explanation generation"]
+            RootCauseAnalysis["Root Cause Analysis<br/><b>Azure Container Apps</b><br/>• LLM Engine (Azure OpenAI GPT-4)<br/>• Pattern detection & reasoning<br/>• Hypothesis generation<br/>• Natural language explanation"]
 
             RAGPipeline["RAG Pipeline<br/><b>Azure AI Search + Embeddings</b><br/>• Historical case retrieval<br/>• Similarity matching<br/>• Context enrichment"]
 
@@ -119,8 +119,8 @@ flowchart TB
     RecDB -.->|"Unmatched cases only"| AIInvestigator
     History -.->|"Reference data"| RAGPipeline
     RAGPipeline -.->|"Similar cases"| AIInvestigator
-    AIInvestigator -.->|"Query with context"| LLM
-    LLM -.->|"Root cause analysis"| ConfidenceEngine
+    AIInvestigator -.->|"Analyze with context"| RootCauseAnalysis
+    RootCauseAnalysis -.->|"Root cause hypothesis"| ConfidenceEngine
     ConfidenceEngine -.->|"Suggestions (metadata)"| RecDB
 
     %% Finance Control Flow (Thick Lines - Critical)
@@ -160,7 +160,7 @@ flowchart TB
     class POS,Bank,ERP,History sourceStyle
     class Orchestrator,APIConnector,RPA,RawStorage,NormalizedStorage,Normalizer,AITroubleshooter automationStyle
     class RecDB,Engine,BatchProcessor,ExceptionMgr reconcileStyle
-    class AIInvestigator,LLM,RAGPipeline,ConfidenceEngine aiStyle
+    class AIInvestigator,RootCauseAnalysis,RAGPipeline,ConfidenceEngine aiStyle
     class Workbench,ApprovalGateway,ControlledOutput,AuditStore financeStyle
     class KeyVault,Monitor,RBAC governanceStyle
 ```
@@ -201,6 +201,7 @@ sequenceDiagram
     participant Batch as Batch Processor
     participant Engine as Deterministic Engine<br/>(Power Automate)
     participant AI as AI Investigator
+    participant RootCause as Root Cause Analysis
     participant DB as Reconciliation DB
     participant Finance as Finance Team<br/>(Workbench)
     participant Gateway as Approval Gateway
@@ -267,9 +268,11 @@ sequenceDiagram
         DB->>AI: 12. Fetch unmatched cases
         AI->>History: 13. Search similar historical cases
         History-->>AI: 14. Top 5 similar cases + context
-        AI->>AI: 15. Generate root cause hypothesis
-        AI->>AI: 16. Confidence scoring (0-100%)
-        AI->>DB: 17. Store suggestion metadata<br/>(NOT decision)
+        AI->>RootCause: 15. Analyze with context
+        RootCause->>RootCause: LLM reasoning (Azure OpenAI)
+        RootCause-->>AI: 16. Root cause hypothesis
+        AI->>AI: 17. Confidence scoring (0-100%)
+        AI->>DB: 18. Store suggestion metadata<br/>(NOT decision)
         DB->>Audit: Log: AI suggestion (confidence: X%)
     else AI Service Down
         DB->>Monitor: Circuit breaker open
